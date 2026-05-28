@@ -1,0 +1,2147 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Marios Chachoudis · Ichthyology · ML · Toward Alignment</title>
+<meta name="description" content="Marios Chachoudis — ichthyology student, ML developer, building toward AI alignment research." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..900,0..100,0..1;1,9..144,400..900,0..100,0..1&family=JetBrains+Mono:wght@300;400;500;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+
+<script src="image-slot.js"></script>
+<script src="pond.js" defer></script>
+
+<style>
+/* =======================================================================
+   THEME — moody literary aesthetic.
+   Dark: deep desaturated forest, warm cream ink, gilded gold + oxidized teal.
+   Light: parchment, ink, deep teal.
+   ======================================================================= */
+:root,
+[data-theme="dark"]{
+  --bg:        #0c1612;
+  --bg-2:      #101c17;
+  --bg-3:      #15241d;
+  --panel:     #0e1813;
+  --panel-2:   #13201a;
+  --line:      #1e302a;
+  --line-2:    #2a4239;
+  --line-3:    #3a5749;
+
+  --ink:       #e8dec3;     /* warm cream */
+  --ink-dim:   #b6ad94;
+  --ink-mute:  #7a7665;
+  --ink-faint: #4b4a40;
+
+  --accent:    #d4b06a;     /* gilded gold (book-binding) */
+  --accent-2:  #6ba593;     /* oxidized teal */
+  --warm:      #c98c4a;     /* burnt umber */
+  --accent-soft: rgba(212,176,106,0.10);
+  --accent-bg:   rgba(212,176,106,0.18);
+
+  --term-bg:   #08110d;
+  --term-line: #1e302a;
+  --select-bg: rgba(212,176,106,0.30);
+  --select-fg: #0c1612;
+}
+[data-theme="light"]{
+  --bg:        #ece2c8;
+  --bg-2:      #e5dabd;
+  --bg-3:      #dbcfaa;
+  --panel:     #e0d4b2;
+  --panel-2:   #d6c89e;
+  --line:      #a89b76;
+  --line-2:    #8c8060;
+  --line-3:    #6e6448;
+
+  --ink:       #0e1813;
+  --ink-dim:   #2c3a30;
+  --ink-mute:  #56604e;
+  --ink-faint: #7d8474;
+
+  --accent:    #7a5616;
+  --accent-2:  #1f5e51;
+  --warm:      #884416;
+  --accent-soft: rgba(122,86,22,0.12);
+  --accent-bg:   rgba(122,86,22,0.20);
+
+  --term-bg:   #d8cdac;
+  --term-line: #a89b76;
+  --select-bg: rgba(122,86,22,0.30);
+  --select-fg: #ece2c8;
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+html, body{ margin:0; padding:0; background: var(--bg); }
+body{
+  color: var(--ink);
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  transition: background-color .35s ease, color .35s ease;
+}
+::selection{ background: var(--select-bg); color: var(--select-fg); }
+a{ color: inherit; text-decoration: none; }
+
+/* paper grain, very subtle */
+body::before{
+  content:"";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* atmospheric painterly wash behind everything */
+body::after{
+  content:"";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 30%, rgba(40,70,55,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(30,50,40,0.45) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 30% at 50% 100%, rgba(20,40,30,0.5) 0%, transparent 70%);
+}
+[data-theme="light"] body::after{ display: none; }
+
+/* =======================================================================
+   FRAME — the bordered cage. Heavier rails, gridded top.
+   ======================================================================= */
+.frame{
+  max-width: 1280px;
+  margin: 0 auto;
+  border-left: 1px solid var(--line-2);
+  border-right: 1px solid var(--line-2);
+  position: relative;
+  background: var(--bg);
+  z-index: 2;
+}
+
+/* =======================================================================
+   TOPBAR — gridded cells, like a printed table header
+   ======================================================================= */
+.topbar{
+  display: grid;
+  grid-template-columns: 240px repeat(3, 1fr) 220px;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  min-height: 88px;
+}
+.topbar.scrolled{
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+}
+.topbar > *{
+  border-right: 1px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+  min-height: 88px;
+}
+.topbar > *:last-child{ border-right: none; }
+
+.brand-cell{
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  padding: 18px 24px;
+}
+.brand-cell .wordmark{
+  font-family: "Fraunces", "Iowan Old Style", Georgia, serif;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 0.95;
+  letter-spacing: 0.005em;
+  font-variation-settings: "opsz" 144, "SOFT" 30, "WONK" 0;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+.brand-cell .wordmark .r1,
+.brand-cell .wordmark .r2{ display: block; }
+.brand-cell .sub{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-top: 6px;
+}
+.brand-cell .sub .dot{
+  display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent-2);
+  margin-right: 6px;
+  vertical-align: 1px;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{ opacity:.95; transform:scale(1); }
+  50%   { opacity:.4;  transform:scale(.6); }
+}
+
+.nav-cell{
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: background-color .25s ease;
+}
+.nav-cell:hover{ background-color: var(--bg-2); }
+.nav-cell .label{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.nav-cell:hover .label{ color: var(--ink); }
+.nav-cell.active .label{ color: var(--accent); }
+.nav-cell .underglow{
+  position: absolute;
+  inset: 4px;
+  background: var(--bg-3);
+  opacity: 0;
+  transition: opacity .25s ease;
+  pointer-events: none;
+}
+.nav-cell:hover .underglow{ opacity: 0.4; }
+.nav-cell.active .underglow{ opacity: 0.6; }
+
+.theme-cell{
+  justify-content: space-between;
+  padding: 0 24px;
+}
+.theme-cell .right-icons{
+  display: flex; gap: 14px; align-items: center;
+}
+.theme-cell .icon-link{
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ink-mute);
+  transition: color .2s ease;
+}
+.theme-cell .icon-link:hover{ color: var(--accent); }
+.theme-cell .icon-link svg{ width: 14px; height: 14px; }
+.theme-cell .label{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.theme-toggle{
+  position: relative;
+  width: 44px; height: 22px;
+  border: 1px solid var(--line-3);
+  border-radius: 999px;
+  cursor: pointer;
+  background: transparent;
+  transition: border-color .2s ease;
+}
+.theme-toggle:hover{ border-color: var(--accent); }
+.theme-toggle .nib{
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--ink-dim);
+  transition: left .25s cubic-bezier(.4,.0,.2,1), background .25s ease;
+}
+[data-theme="light"] .theme-toggle .nib{ left: 24px; background: var(--accent); }
+
+@media (max-width: 980px){
+  .topbar{ grid-template-columns: 1fr 1fr; }
+  .topbar .nav-cell:not(.show-mobile){ display: none; }
+  .brand-cell{ padding: 14px 18px; min-height: 72px; }
+  .theme-cell{ min-height: 72px; }
+  .topbar > *{ min-height: 72px; }
+}
+
+/* =======================================================================
+   SECTIONS
+   ======================================================================= */
+section{
+  position: relative;
+  padding: clamp(72px, 11vh, 132px) clamp(20px, 4vw, 64px);
+  border-bottom: 1px solid var(--line-2);
+}
+section:last-of-type{ border-bottom: none; }
+.container{ max-width: 1080px; margin: 0 auto; position: relative; z-index: 2; }
+
+.eyebrow{
+  display: flex; align-items: center; gap: 16px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 40px;
+}
+.eyebrow .num{ color: var(--accent); }
+.eyebrow .rule{ flex: 1; height: 1px; background: var(--line-2); }
+
+h2.section-title{
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  font-size: clamp(28px, 3.8vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  font-variation-settings: "opsz" 144, "SOFT" 30, "WONK" 0;
+  margin: 0 0 22px 0;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+h2.section-title em{
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 600;
+  font-variation-settings: "opsz" 144, "SOFT" 80, "WONK" 1;
+  text-transform: none;
+}
+p.lede{
+  font-family: "Fraunces", serif;
+  font-size: clamp(17px, 1.8vw, 19px);
+  line-height: 1.55;
+  color: var(--ink-dim);
+  max-width: 60ch;
+  margin: 0 0 56px 0;
+  font-weight: 400;
+}
+
+/* =======================================================================
+   HERO
+   ======================================================================= */
+.hero{
+  text-align: center;
+  padding-top: clamp(80px, 14vh, 160px);
+  padding-bottom: clamp(60px, 10vh, 110px);
+  position: relative;
+  overflow: hidden;
+}
+.hero-bg{
+  position: absolute; inset: 0;
+  z-index: 0; pointer-events: none;
+  overflow: hidden;
+}
+/* faded etching: jellyfish, low contrast, drifting in the right corner */
+.hero-bg svg.etching{
+  position: absolute;
+  right: -10%;
+  bottom: -10%;
+  width: 65%;
+  max-width: 760px;
+  height: auto;
+  opacity: 0.08;
+}
+[data-theme="light"] .hero-bg svg.etching{ opacity: 0.18; }
+.hero-bg svg.etching *{
+  stroke: var(--accent);
+  fill: none;
+  stroke-width: 0.7;
+  vector-effect: non-scaling-stroke;
+}
+
+.hero-inner{
+  position: relative; z-index: 2;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.hero-eyebrow{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 42px;
+}
+.hero-eyebrow .acc{ color: var(--accent); }
+.hero-eyebrow .sep{ color: var(--ink-faint); margin: 0 14px; }
+
+h1.hero-title{
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  font-size: clamp(48px, 9vw, 116px);
+  line-height: 0.92;
+  letter-spacing: -0.022em;
+  margin: 0;
+  color: var(--ink);
+  font-variation-settings: "opsz" 144, "SOFT" 25, "WONK" 0;
+  text-transform: uppercase;
+}
+h1.hero-title .stack{ display: block; }
+h1.hero-title .stack.it{
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 600;
+  font-variation-settings: "opsz" 144, "SOFT" 80, "WONK" 1;
+  text-transform: none;
+  margin-top: 6px;
+}
+
+.hero-sub{
+  font-family: "Fraunces", serif;
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.6;
+  color: var(--ink-dim);
+  margin: 36px auto 12px auto;
+  max-width: 56ch;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.hero-blurb{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  color: var(--ink-mute);
+  max-width: 62ch;
+  margin: 14px auto 52px auto;
+  line-height: 1.75;
+}
+
+/* install steps */
+.install-steps{
+  max-width: 620px;
+  margin: 0 auto 22px auto;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  border: 1px solid var(--line-2);
+}
+.step{
+  background: var(--panel);
+  padding: 16px 20px 14px 20px;
+  border-bottom: 1px solid var(--line-2);
+}
+.step:last-child{ border-bottom: none; }
+.step-head{
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.step-head .label{
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.step-head .label .n{ color: var(--ink-dim); }
+.step-head .copy-btn{
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: var(--ink-mute);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  padding: 4px 6px;
+  transition: color .2s ease;
+}
+.step-head .copy-btn:hover{ color: var(--accent); }
+.step-head .copy-btn.done{ color: var(--accent); }
+.step-cmd{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--accent-bg);
+  padding: 7px 10px;
+  word-break: break-all;
+  line-height: 1.55;
+  border-radius: 1px;
+}
+.step-cmd .prompt{ color: var(--accent); user-select: none; margin-right: 8px; }
+.step-cmd .arg{ color: var(--ink); }
+
+.hero-caveat{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 32px 0 0 0;
+}
+.hero-caveat .acc{ color: var(--accent); }
+
+/* =======================================================================
+   HERO — personal variant (name + bio + portrait + Now panel)
+   ======================================================================= */
+.hero-personal{
+  text-align: left;
+  padding-top: clamp(64px, 10vh, 110px);
+  padding-bottom: clamp(48px, 8vh, 88px);
+}
+.hero-inner-personal{
+  max-width: 880px;
+  margin: 0 0 64px 0;
+  text-align: left;
+}
+.hero-inner-personal .hero-eyebrow{
+  margin-bottom: 36px;
+}
+h1.hero-name{
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  font-size: clamp(48px, 8.5vw, 108px);
+  line-height: 0.9;
+  letter-spacing: -0.024em;
+  margin: 0;
+  color: var(--ink);
+  font-variation-settings: "opsz" 144, "SOFT" 25, "WONK" 0;
+  text-transform: uppercase;
+}
+h1.hero-name .stack{ display: block; }
+h1.hero-name .stack.it{
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 600;
+  font-variation-settings: "opsz" 144, "SOFT" 80, "WONK" 1;
+  text-transform: none;
+  margin-top: -8px;
+}
+.hero-bio{
+  font-family: "Fraunces", serif;
+  font-size: clamp(17px, 1.8vw, 21px);
+  line-height: 1.55;
+  color: var(--ink-dim);
+  margin: 36px 0 0 0;
+  max-width: 62ch;
+  font-weight: 400;
+}
+
+/* Now-block: portrait + field-notebook side-by-side */
+.now-block{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  border-top: 1px solid var(--line-2);
+  padding-top: 36px;
+  margin-top: 12px;
+}
+@media (min-width: 820px){
+  .now-block{ grid-template-columns: 280px 1fr; gap: 56px; }
+}
+.portrait-cell{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.portrait-cell image-slot{
+  border: 1px solid var(--line-2);
+}
+.portrait-cap{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.now-cell{
+  display: flex;
+  flex-direction: column;
+}
+.now-head{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-2);
+}
+.now-head .now-dot{
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent-2);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+.now-head .now-meta{
+  margin-left: auto;
+  color: var(--ink-mute);
+  font-style: italic;
+  font-family: "IM Fell English", "Fraunces", serif;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+.now-list{
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 10px 24px;
+  margin: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+.now-list dt{
+  color: var(--ink-mute);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding-top: 3px;
+}
+.now-list dd{
+  margin: 0;
+  color: var(--ink-dim);
+}
+.now-list dd em,
+.now-list dd .acc{ color: var(--accent); font-style: normal; }
+
+/* =======================================================================
+   GLITCH TEXT — letter-by-letter scramble on hover
+   ======================================================================= */
+[data-glitch]{
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;        /* keep all per-char spans on one line */
+  /* kerning + ligatures off so the wrapped per-char form has the same
+     metrics as the original text — no horizontal drift after the glitch */
+  font-kerning: none;
+  font-variant-ligatures: none;
+  font-feature-settings: "kern" 0, "liga" 0;
+}
+.gx-char{
+  display: inline-block;
+  position: relative;
+  white-space: pre;
+  vertical-align: baseline;
+}
+.gx-char .gx-ghost{
+  color: transparent;          /* invisible but selectable & holds width */
+}
+.gx-char .gx-show{
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  user-select: none;
+  text-align: left;
+  overflow: visible;
+}
+.gx-char.glitching .gx-show{
+  color: var(--accent);
+}
+.gx-cursor{
+  display: inline-block;
+  width: 0.55ch;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background:
+    repeating-linear-gradient(45deg,
+      currentColor 0 1px,
+      transparent 1px 2px);
+  color: var(--accent);
+  animation: gxblink 0.6s steps(2,start) infinite;
+  opacity: 0;
+}
+.gx-cursor.live{ opacity: 1; }
+@keyframes gxblink{
+  0%, 50%   { opacity: 1; }
+  50.01%, 100%{ opacity: 0.15; }
+}
+
+/* small inline "render cursor" for nav cells */
+.nav-cursor{
+  display: inline-block;
+  width: 1.2ch;
+  height: 1.1em;
+  margin-left: 4px;
+  margin-bottom: -0.15em;
+  background:
+    repeating-linear-gradient(45deg,
+      currentColor 0 1px,
+      transparent 1px 2px);
+  color: var(--accent);
+  opacity: 0;
+  animation: gxblink 0.6s steps(2,start) infinite;
+  vertical-align: middle;
+}
+.nav-cell:hover .nav-cursor{ opacity: 1; }
+.nav-cell.active .nav-cursor{ opacity: 1; }
+
+/* =======================================================================
+   THE POND — mini fishing game
+   ======================================================================= */
+.pond-steps{
+  list-style: none;
+  margin: 0 0 32px 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  line-height: 1.6;
+  max-width: 64ch;
+}
+.pond-steps li{
+  padding: 8px 14px 8px 12px;
+  border-left: 1px solid var(--line-2);
+}
+.pond-steps .n{
+  display: inline-block;
+  width: 24px;
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  color: var(--accent);
+  font-size: 16px;
+  font-variation-settings: "opsz" 60, "SOFT" 80, "WONK" 1;
+}
+.pond-steps em{
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 500;
+}
+.pond-wrap{
+  margin-top: 8px;
+  border: 1px solid var(--line-3);
+  background: var(--term-bg);
+  overflow: hidden;
+}
+.pond-canvas{
+  position: relative;
+  width: 100%;
+  background: #08110d;
+  border-bottom: 1px solid var(--line-2);
+}
+.pond-canvas canvas{
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+}
+.pond-hud{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 20px;
+  background: color-mix(in srgb, var(--term-bg) 60%, var(--bg-2));
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.pond-status{ color: var(--ink-mute); }
+.pond-status .acc{ color: var(--accent); }
+.pond-status .latin{
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--accent-2);
+  font-size: 13px;
+  margin-left: 4px;
+}
+.pond-status.bite{
+  color: var(--accent);
+  animation: pond-flash .35s steps(2,start) infinite;
+}
+@keyframes pond-flash{
+  0%, 50%   { opacity: 1; }
+  50.01%, 100%{ opacity: 0.4; }
+}
+.pond-btn{
+  cursor: pointer;
+  padding: 9px 26px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  transition: background-color .2s ease, color .2s ease;
+  min-width: 110px;
+}
+.pond-btn:hover{ background: var(--accent); color: var(--bg); }
+.pond-btn:disabled{ opacity: 0.4; cursor: default; }
+.pond-btn.bite{
+  animation: pond-bite .4s ease-in-out infinite alternate;
+  background: var(--accent);
+  color: var(--bg);
+}
+@keyframes pond-bite{
+  from{ transform: scale(1); }
+  to  { transform: scale(1.04); }
+}
+.pond-tally{
+  text-align: right;
+  color: var(--ink-mute);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.pond-tally .cnt{ color: var(--accent); font-family: "Fraunces", serif; font-style: italic; font-size: 14px; text-transform: none; margin-right: 4px; }
+@media (max-width: 640px){
+  .pond-hud{ grid-template-columns: 1fr; text-align: center; gap: 10px; padding: 14px; }
+  .pond-tally{ text-align: center; }
+}
+
+/* =======================================================================
+   FISHING ROD — reel-up back-to-top button (bottom-right)
+   ======================================================================= */
+.rod-up{
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 64px;
+  height: 160px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 60;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.rod-up.live{
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.rod-up:focus-visible{ outline: 1px dashed var(--accent); outline-offset: 4px; }
+/* fishing line — thin vertical line from the top of the box down to the rod tip */
+.rod-up .rod-line{
+  position: absolute;
+  top: 0;
+  right: 18px;
+  width: 1px;
+  height: 92px;
+  background: var(--accent);
+  transform-origin: bottom center;
+  transition: height .6s cubic-bezier(.3,.7,.2,1), transform .25s ease;
+}
+/* small hook at the top of the line */
+.rod-up .rod-hook{
+  position: absolute;
+  top: 6px;
+  right: 13px;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--accent);
+  border-right: none;
+  border-top: none;
+  border-radius: 0 0 0 60%;
+  transform: rotate(-12deg);
+}
+/* rod shaft — diagonal stick from grip up to where the line attaches */
+.rod-up .rod-shaft{
+  position: absolute;
+  bottom: 36px;
+  right: 14px;
+  width: 2.5px;
+  height: 78px;
+  background: linear-gradient(to top, var(--ink-mute), var(--ink-dim));
+  transform: rotate(-12deg);
+  transform-origin: bottom center;
+  border-radius: 2px;
+  transition: transform .35s cubic-bezier(.4, 1.4, .6, 1);
+}
+/* reel — small circle near the grip */
+.rod-up .rod-reel{
+  position: absolute;
+  bottom: 30px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--ink-dim);
+  border-radius: 50%;
+  background: var(--bg);
+}
+.rod-up .rod-reel::after{
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--ink-mute);
+}
+/* grip — horizontal handle below the reel */
+.rod-up .rod-grip{
+  position: absolute;
+  bottom: 8px;
+  right: 0;
+  width: 28px;
+  height: 6px;
+  background: var(--ink-dim);
+  border-radius: 2px;
+}
+/* hint label that fades in on hover */
+.rod-up .rod-label{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity .2s ease, transform .2s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.rod-up:hover .rod-label{
+  opacity: 1;
+  transform: translateX(-72px);
+}
+.rod-up:hover .rod-shaft{
+  transform: rotate(-16deg);
+}
+.rod-up:hover .rod-line{
+  animation: rod-wiggle 0.9s ease-in-out;
+}
+@keyframes rod-wiggle{
+  0%, 100%{ transform: skewX(0); }
+  25%     { transform: skewX(2.5deg); }
+  75%     { transform: skewX(-2.5deg); }
+}
+/* clicked: rod yanks back and line snaps short */
+.rod-up.reeling .rod-shaft{
+  animation: rod-pull .55s cubic-bezier(.4,1.6,.5,1);
+}
+@keyframes rod-pull{
+  0%   { transform: rotate(-12deg); }
+  35%  { transform: rotate(38deg); }
+  60%  { transform: rotate(-22deg); }
+  100% { transform: rotate(-12deg); }
+}
+.rod-up.reeling .rod-line{
+  height: 18px;
+}
+@media (max-width: 600px){
+  .rod-up{ bottom: 16px; right: 16px; width: 52px; height: 130px; }
+  .rod-up .rod-line{ height: 70px; }
+  .rod-up .rod-shaft{ height: 64px; }
+  .rod-up .rod-label{ display: none; }
+}
+
+/* =======================================================================
+   TERMINAL
+   ======================================================================= */
+.demo .terminal-wrap{
+  margin-top: 28px;
+  border: 1px solid var(--line-3);
+  background: var(--term-bg);
+  overflow: hidden;
+  position: relative;
+}
+.terminal-head{
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--term-line);
+  background: color-mix(in srgb, var(--term-bg) 70%, var(--bg-2));
+}
+.dot{ width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot.r{ background: #b3534f; }
+.dot.y{ background: #c89a3c; }
+.dot.g{ background: #5b9362; }
+.terminal-head .title{
+  flex: 1;
+  text-align: center;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+}
+.terminal-head .title .acc{ color: var(--accent); }
+
+.terminal-body{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  padding: 22px 26px 28px 26px;
+  color: var(--ink);
+  min-height: 380px;
+  position: relative;
+}
+.t-line{ display: flex; gap: 12px; align-items: baseline; opacity: 0; transition: opacity .2s ease; white-space: pre-wrap; }
+.t-line.in{ opacity: 1; }
+.t-line .gutter{ width: 18px; flex-shrink: 0; color: var(--ink-mute); text-align: right; user-select: none; }
+.t-line .body{ flex: 1; min-width: 0; }
+.t-line .body .name{ color: var(--accent); }
+.t-line .body .arg{ color: var(--ink-dim); }
+.t-line .body .str{ color: var(--accent-2); }
+.t-line .time{
+  margin-left: auto;
+  color: var(--ink-mute);
+  font-size: 12.5px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.t-line .time.in{ opacity: 1; }
+.t-line.prompt .body{ color: var(--ink); font-weight: 500; }
+.t-line.prompt .gutter{ color: var(--accent); }
+.t-line.done{ color: var(--accent); margin-top: 14px; }
+.t-line.done .gutter{ color: var(--accent); }
+.t-line.done .body{ color: var(--accent); }
+.caret{
+  display: inline-block;
+  width: 8px; height: 1.05em;
+  background: var(--accent);
+  vertical-align: -2px;
+  margin-left: 4px;
+  animation: blink 1.05s steps(2, start) infinite;
+}
+@keyframes blink{
+  0%, 50%   { opacity: 1; }
+  50.01%, 100%{ opacity: 0; }
+}
+
+.demo-foot{
+  margin-top: 16px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  display: flex; align-items: center; gap: 14px;
+}
+.demo-foot .live-dot{
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent-2);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+.demo-foot .sep{ color: var(--ink-faint); }
+.demo-foot a{ color: var(--accent); }
+
+/* =======================================================================
+   CAPABILITIES
+   ======================================================================= */
+.features{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--line-2);
+  border: 1px solid var(--line-2);
+  margin-top: 8px;
+}
+@media (min-width: 700px){ .features{ grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px){ .features{ grid-template-columns: repeat(3, 1fr); } }
+.feature{
+  background: var(--bg);
+  padding: 34px 28px 30px 28px;
+  transition: background .2s ease;
+  position: relative;
+}
+.feature:hover{ background: var(--bg-2); }
+.feature .glyph{
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  font-size: 22px;
+  color: var(--accent);
+  margin-bottom: 14px;
+  font-variation-settings: "opsz" 60, "SOFT" 80, "WONK" 1;
+  display: block;
+}
+.feature:nth-child(2n) .glyph{ color: var(--accent-2); }
+.feature h3{
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.18;
+  color: var(--ink);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.006em;
+  font-variation-settings: "opsz" 100, "SOFT" 30, "WONK" 0;
+  text-transform: uppercase;
+}
+.feature p{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink-dim);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* =======================================================================
+   PROJECTS
+   ======================================================================= */
+.projects{
+  border-top: 1px solid var(--line-2);
+  margin-top: 8px;
+}
+.project{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--line-2);
+  position: relative;
+  transition: padding-left .25s ease, background-color .2s ease;
+}
+@media (min-width: 820px){
+  .project{
+    grid-template-columns: 180px 1fr 180px;
+    gap: 36px;
+    padding: 28px 0;
+  }
+}
+.project::before{
+  content:""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 0; background: var(--accent);
+  transition: width .25s cubic-bezier(.2,.7,.2,1);
+}
+.project:hover{ padding-left: 14px; }
+.project:hover::before{ width: 2px; }
+
+.project-status{ padding-top: 4px; }
+.project-status .pill{
+  display: inline-block;
+  padding: 4px 9px;
+  border: 1px solid var(--line-3);
+  color: var(--ink-mute);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.project-status .pill.live{ color: var(--accent); border-color: var(--accent); }
+.project-status .pill.research{ color: var(--accent-2); border-color: var(--accent-2); }
+.project-status .pill.thesis{ color: var(--warm); border-color: var(--warm); }
+
+.project-body h3{
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  font-size: clamp(22px, 2.4vw, 28px);
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.012em;
+  font-variation-settings: "opsz" 100, "SOFT" 30, "WONK" 0;
+}
+.project-body h3 em{ font-style: italic; color: var(--accent); font-weight: 600; font-variation-settings: "opsz" 100, "SOFT" 80, "WONK" 1; }
+.project-body p{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  line-height: 1.7;
+  margin: 0 0 14px 0;
+  max-width: 64ch;
+}
+.project-stack{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.project-stack span:not(:last-child)::after{
+  content: " · "; color: var(--ink-faint); margin: 0 4px;
+}
+
+.project-links{
+  display: flex; flex-direction: column; gap: 6px;
+  padding-top: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.project-links a{ color: var(--ink-dim); transition: color .2s ease; }
+.project-links a:hover{ color: var(--accent); }
+.project-links a .arr{ display: inline-block; transition: transform .2s ease; }
+.project-links a:hover .arr{ transform: translateX(3px); }
+
+/* =======================================================================
+   VERIFIED
+   ======================================================================= */
+.verified-list{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--line-2);
+}
+@media (min-width: 700px){
+  .verified-list{ grid-template-columns: 1fr 1fr; gap: 0 48px; }
+}
+.cert-row{
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px dashed var(--line-2);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+}
+.cert-row .name{ color: var(--ink); transition: color .2s ease; }
+.cert-row:hover .name{ color: var(--accent); }
+.cert-row .meta{ color: var(--ink-mute); font-size: 11px; letter-spacing: 0.08em; white-space: nowrap; }
+.cert-row .meta .yr{ color: var(--accent); font-style: italic; font-family: "Fraunces", serif; font-size: 13px; margin-left: 8px; }
+
+/* =======================================================================
+   ROADMAP
+   ======================================================================= */
+.roadmap-list{
+  margin-top: 8px;
+  border-top: 1px solid var(--line-2);
+}
+.horizon-row{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--line-2);
+}
+@media (min-width: 820px){
+  .horizon-row{ grid-template-columns: 200px 1fr; gap: 40px; padding: 32px 0; }
+}
+.horizon-tag{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding-top: 6px;
+}
+.horizon-tag .dim{ color: var(--ink-mute); }
+.horizon-body h3{
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.25;
+  color: var(--ink);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.008em;
+  font-variation-settings: "opsz" 100, "SOFT" 30, "WONK" 0;
+}
+.horizon-body h3 em{ font-style: italic; color: var(--accent); font-weight: 600; }
+.horizon-body p{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 62ch;
+}
+
+/* =======================================================================
+   CONTACT
+   ======================================================================= */
+.contact-title{
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  font-size: clamp(30px, 4.6vw, 54px);
+  line-height: 1.05;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+  margin: 0 0 40px 0;
+  max-width: 16ch;
+  text-transform: uppercase;
+  font-variation-settings: "opsz" 144, "SOFT" 25, "WONK" 0;
+}
+.contact-title em{ font-style: italic; color: var(--accent); font-weight: 600; font-variation-settings: "opsz" 144, "SOFT" 80, "WONK" 1; text-transform: none; }
+
+.contact-grid{ border-top: 1px solid var(--line-2); margin-top: 16px; }
+.contact-link{
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line-2);
+  transition: padding-left .25s ease;
+  position: relative;
+}
+.contact-link::before{
+  content:""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 0; background: var(--accent);
+  transition: width .25s ease;
+}
+.contact-link:hover{ padding-left: 14px; }
+.contact-link:hover::before{ width: 2px; }
+.contact-link .label{
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  display: block;
+  margin-bottom: 6px;
+}
+.contact-link .val{
+  font-family: "Fraunces", serif;
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--ink);
+  font-variation-settings: "opsz" 100, "SOFT" 80, "WONK" 1;
+}
+.contact-link:hover .val{ color: var(--accent); }
+.contact-link .arr{
+  color: var(--ink-mute);
+  transition: transform .2s ease, color .2s ease;
+  font-family: "JetBrains Mono", monospace;
+}
+.contact-link:hover .arr{ color: var(--accent); transform: translateX(6px); }
+
+/* =======================================================================
+   FOOTER — gridded, like topbar
+   ======================================================================= */
+footer.foot{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--line-2);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+}
+footer.foot > *{
+  padding: 22px clamp(20px, 4vw, 64px);
+  border-right: 1px solid var(--line-2);
+}
+footer.foot > *:last-child{ border-right: none; text-align: right; }
+footer.foot .ver{ color: var(--accent); }
+footer.foot a{ color: var(--ink-mute); transition: color .2s ease; }
+footer.foot a:hover{ color: var(--accent); }
+footer.foot .lo{ display: flex; gap: 18px; flex-wrap: wrap; }
+
+/* =======================================================================
+   REVEAL
+   ======================================================================= */
+.reveal{ opacity: 0; transform: translateY(10px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+.reveal.in{ opacity: 1; transform: none; }
+.reveal.d1{ transition-delay: .08s; }
+.reveal.d2{ transition-delay: .16s; }
+.reveal.d3{ transition-delay: .24s; }
+.reveal.d4{ transition-delay: .32s; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation: none !important; transition: none !important; }
+  .reveal{ opacity: 1; transform: none; }
+  html{ scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- ===================== TOPBAR ===================== -->
+  <header class="topbar" id="topbar">
+    <a href="#top" class="brand-cell" data-glitch>
+      <span class="wordmark">
+        <span class="r1">Marios</span>
+        <span class="r2">Chachoudis</span>
+      </span>
+      <span class="sub"><span class="dot"></span>Volos, Greece</span>
+    </a>
+
+    <a href="#work" class="nav-cell" data-nav="work">
+      <span class="underglow"></span>
+      <span class="label" data-glitch>Work<span class="nav-cursor"></span></span>
+    </a>
+    <a href="#log" class="nav-cell" data-nav="log">
+      <span class="underglow"></span>
+      <span class="label" data-glitch>Log<span class="nav-cursor"></span></span>
+    </a>
+    <a href="#contact" class="nav-cell" data-nav="contact">
+      <span class="underglow"></span>
+      <span class="label" data-glitch>Contact<span class="nav-cursor"></span></span>
+    </a>
+
+    <div class="theme-cell">
+      <div class="right-icons">
+        <a class="icon-link" href="https://github.com/mrchachoudis" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.69-3.87-1.54-3.87-1.54-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.34.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.81 1.18 1.84 1.18 3.09 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.14 0 1.54-.01 2.79-.01 3.17 0 .31.21.67.8.56 4.57-1.52 7.86-5.83 7.86-10.91C23.5 5.65 18.35.5 12 .5z"/>
+          </svg>
+        </a>
+        <a class="icon-link" href="mailto:mrchachoudis@gmail.com" aria-label="Email">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="1"/>
+            <polyline points="3,7 12,13 21,7"/>
+          </svg>
+        </a>
+        <span class="label" data-glitch>Theme</span>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="nib"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero hero-personal" id="top">
+    <div class="hero-bg" aria-hidden="true">
+      <svg class="etching" viewBox="0 0 600 1100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 80 360 Q 80 90, 300 90 Q 520 90, 520 360"/>
+        <path d="M 130 360 Q 130 150, 300 150 Q 470 150, 470 360"/>
+        <path d="M 180 360 Q 180 210, 300 210 Q 420 210, 420 360"/>
+        <path d="M 230 360 Q 230 270, 300 270 Q 370 270, 370 360"/>
+        <path d="M 300 90 L 300 360"/>
+        <path d="M 215 110 L 245 360"/>
+        <path d="M 385 110 L 355 360"/>
+        <path d="M 145 165 L 195 360"/>
+        <path d="M 455 165 L 405 360"/>
+        <path d="M 110 235 L 170 360"/>
+        <path d="M 490 235 L 430 360"/>
+        <circle cx="300" cy="220" r="14"/>
+        <circle cx="245" cy="245" r="9"/>
+        <circle cx="355" cy="245" r="9"/>
+        <circle cx="200" cy="285" r="7"/>
+        <circle cx="400" cy="285" r="7"/>
+        <path d="M 90 360 Q 100 380, 110 360 Q 120 380, 130 360 Q 140 380, 150 360 Q 160 380, 170 360 Q 180 380, 190 360 Q 200 380, 210 360 Q 220 380, 230 360 Q 240 380, 250 360 Q 260 380, 270 360 Q 280 380, 290 360 Q 300 380, 310 360 Q 320 380, 330 360 Q 340 380, 350 360 Q 360 380, 370 360 Q 380 380, 390 360 Q 400 380, 410 360 Q 420 380, 430 360 Q 440 380, 450 360 Q 460 380, 470 360 Q 480 380, 490 360 Q 500 380, 510 360"/>
+        <path d="M 235 380 Q 215 460, 255 560 Q 275 640, 240 740 Q 215 820, 260 900"/>
+        <path d="M 285 380 Q 295 480, 275 580 Q 255 680, 290 780 Q 310 860, 280 950"/>
+        <path d="M 320 380 Q 310 480, 330 580 Q 350 680, 315 780 Q 295 860, 325 950"/>
+        <path d="M 370 380 Q 390 460, 350 560 Q 330 640, 365 740 Q 390 820, 345 900"/>
+        <path d="M 100 365 Q 80 480, 130 620 Q 170 760, 110 900 Q 75 1000, 130 1090"/>
+        <path d="M 150 365 Q 130 500, 180 650 Q 220 800, 160 940 Q 130 1020, 175 1090"/>
+        <path d="M 200 365 Q 180 510, 215 670 Q 245 820, 195 960 Q 170 1040, 210 1090"/>
+        <path d="M 250 365 Q 235 520, 260 690 Q 280 840, 245 970 Q 225 1050, 255 1090"/>
+        <path d="M 350 365 Q 365 520, 340 690 Q 320 840, 355 970 Q 375 1050, 345 1090"/>
+        <path d="M 400 365 Q 420 510, 385 670 Q 355 820, 405 960 Q 430 1040, 390 1090"/>
+        <path d="M 450 365 Q 470 500, 420 650 Q 380 800, 440 940 Q 470 1020, 425 1090"/>
+        <path d="M 500 365 Q 520 480, 470 620 Q 430 760, 490 900 Q 525 1000, 470 1090"/>
+      </svg>
+    </div>
+
+    <div class="hero-inner hero-inner-personal">
+      <div class="hero-eyebrow reveal">
+        <span>Ichthyology</span><span class="sep">·</span><span class="acc">Machine Learning</span><span class="sep">·</span><span>Toward Alignment</span>
+      </div>
+
+      <h1 class="hero-name">
+        <span class="stack reveal d1" data-glitch>Marios</span>
+        <span class="stack it reveal d2" data-glitch>Chachoudis</span>
+      </h1>
+
+      <p class="hero-bio reveal d3">
+        I&rsquo;m a third-year ichthyology student at the University of Thessaly. I read papers in the morning, write code in the afternoon, and spend evenings with a homelab that hosts more services than my apartment has rooms. I&rsquo;m heading toward AI alignment research the long way &mdash; through fish, statistics, and the kind of negative results most people don&rsquo;t bother writing up.
+      </p>
+    </div>
+
+    <!-- Portrait + Now panel -->
+    <div class="now-block reveal d4">
+      <div class="portrait-cell">
+        <image-slot id="portrait"
+          shape="rect"
+          placeholder="Drag a portrait here"
+          style="width:100%; aspect-ratio: 4/5; background: var(--panel);">
+        </image-slot>
+        <div class="portrait-cap">Marios &mdash; Volos, late 2026</div>
+      </div>
+      <div class="now-cell">
+        <div class="now-head">
+          <span class="now-dot"></span>
+          <span data-glitch>Now</span>
+          <span class="now-meta">field notebook</span>
+        </div>
+        <dl class="now-list">
+          <dt>Place</dt><dd>Volos, Greece. Aegean weather, university campus, homelab in the corner of the room.</dd>
+          <dt>Studying</dt><dd>Third-year ichthyology &middot; University of Thessaly. Finishing a thesis on Greek fisheries landings.</dd>
+          <dt>Building</dt><dd>An eDNA species classifier and a local agentic stack on an RTX 5060 Ti. Plus one unnamed project, quietly.</dd>
+          <dt>Reading</dt><dd>Anthropic interpretability papers. Hubinger on deceptive alignment. Whatever Mediterranean fisheries journal arrives that week.</dd>
+          <dt>Looking for</dt><dd>Conversations about alignment, interpretability, or fisheries-science crossover. Not jobs &mdash; not yet.</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== LIVE DEMO ===================== -->
+  <section class="demo" id="demo">
+    <div class="container">
+      <div class="eyebrow reveal">
+        <span class="num">§ 01</span>
+        <span>See it in action</span>
+        <span class="rule"></span>
+        <span>recorded · real run</span>
+      </div>
+
+      <h2 class="section-title reveal d1" data-glitch>One run from the <em>eDNA notebook.</em></h2>
+      <p class="lede reveal d1">
+        Recorded from a real session. Reads sequences, builds k-mer features, trains a linear SVM, evaluates against the BLAST baseline, explains itself, writes up the result. The numbers underneath are the ones I actually got.
+      </p>
+
+      <div class="terminal-wrap reveal d2">
+        <div class="terminal-head">
+          <span class="dot r"></span>
+          <span class="dot y"></span>
+          <span class="dot g"></span>
+          <span class="title"><span class="acc">marios</span> · ~/research/edna-coi-classifier</span>
+        </div>
+        <div class="terminal-body" id="terminal"></div>
+      </div>
+
+      <div class="demo-foot reveal d3">
+        <span class="live-dot"></span>
+        <span>Live playback</span>
+        <span class="sep">·</span>
+        <span>Reference: <a href="https://github.com/mrchachoudis/edna-coi-classifier" target="_blank" rel="noopener" data-glitch>edna-coi-classifier</a></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CAPABILITIES ===================== -->
+  <section id="capabilities">
+    <div class="container">
+      <div class="eyebrow reveal">
+        <span class="num">§ 02</span>
+        <span>Capabilities</span>
+        <span class="rule"></span>
+        <span>what I do</span>
+      </div>
+
+      <h2 class="section-title reveal d1" data-glitch>What I <em>actually do.</em></h2>
+      <p class="lede reveal d1">Six honest answers to &ldquo;so what can you do?&rdquo; &mdash; the things I&rsquo;ll happily get into a long argument about.</p>
+
+      <div class="features reveal d2">
+        <div class="feature">
+          <span class="glyph">α</span>
+          <h3 data-glitch>Applied ML, end-to-end</h3>
+          <p>Python · scikit-learn · PyTorch · SHAP. Take a problem from raw data through baselines, interpretation, and a defensible writeup. Bias toward simple models that are explainable.</p>
+        </div>
+        <div class="feature">
+          <span class="glyph">β</span>
+          <h3 data-glitch>Bioinformatics &amp; fisheries</h3>
+          <p>eDNA / COI sequence work, BLAST pipelines, stock assessment, panel regression. Comfortable with messy field data and the statistical structures it lives inside.</p>
+        </div>
+        <div class="feature">
+          <span class="glyph">γ</span>
+          <h3 data-glitch>Shipping product</h3>
+          <p>WordPress + custom PHP, native Kotlin Android, Firebase, REST APIs, Java/JS bridges. End-to-end stack ownership including the unsexy operational parts.</p>
+        </div>
+        <div class="feature">
+          <span class="glyph">δ</span>
+          <h3 data-glitch>Self-hosted infrastructure</h3>
+          <p>Proxmox homelab. Nextcloud, Jellyfin, WireGuard, Pi-hole, SearXNG. A local LLM stack on RTX 5060 Ti running Qwen3-14B for agentic experiments.</p>
+        </div>
+        <div class="feature">
+          <span class="glyph">ε</span>
+          <h3 data-glitch>Data analysis</h3>
+          <p>52,000-row Greek fisheries dataset cleaned and analysed for my thesis. Mann-Kendall, STL, K-means, PCA, Shannon, SST correlation. Tables that hold up to review.</p>
+        </div>
+        <div class="feature">
+          <span class="glyph">ζ</span>
+          <h3 data-glitch>Writing under difficulty</h3>
+          <p>Co-author on multiple in-flight papers. The skill I care about most: explaining a hard result clearly, without lying about how clean the road there was.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PROJECTS ===================== -->
+  <section id="work">
+    <div class="container">
+      <div class="eyebrow reveal">
+        <span class="num">§ 03</span>
+        <span>Projects</span>
+        <span class="rule"></span>
+        <span>shipped · in-flight</span>
+      </div>
+
+      <h2 class="section-title reveal d1" data-glitch>Things I&rsquo;ve built, <em>am building,</em> and intend to.</h2>
+
+      <div class="projects reveal d2" id="projects-list"></div>
+    </div>
+  </section>
+
+  <!-- ===================== VERIFIED ===================== -->
+  <section id="verified">
+    <div class="container">
+      <div class="eyebrow reveal">
+        <span class="num">§ 04</span>
+        <span>Coursework</span>
+        <span class="rule"></span>
+        <span>ten programmes &middot; alongside the degree</span>
+      </div>
+
+      <h2 class="section-title reveal d1" data-glitch>The things I sat through, <em>willingly.</em></h2>
+      <p class="lede reveal d1">Ten programmes across analytics, ML, scientific computing, BI, generative AI, and digital marketing &mdash; earned alongside the degree. Mostly Coursera evenings and freeCodeCamp weekends.</p>
+
+      <div class="verified-list reveal d2" id="verified-list"></div>
+    </div>
+  </section>
+
+  <!-- ===================== ROADMAP ===================== -->
+  <section id="log">
+    <div class="container">
+      <div class="eyebrow reveal">
+        <span class="num">§ 05</span>
+        <span>The long bet</span>
+        <span class="rule"></span>
+        <span>directional &middot; not promised</span>
+      </div>
+
+      <h2 class="section-title reveal d1" data-glitch>What I&rsquo;m <em>working toward.</em></h2>
+      <p class="lede reveal d1">Bets, not guarantees. The kind I&rsquo;m willing to spend years on.</p>
+
+      <div class="roadmap-list reveal d2">
+        <div class="horizon-row">
+          <div class="horizon-tag">0&ndash;1 yr <span class="dim">&middot; now</span></div>
+          <div class="horizon-body">
+            <h3 data-glitch>Ship the unnamed project</h3>
+            <p>A project I&rsquo;ve been building in the background. Details when it&rsquo;s ready &mdash; not before.</p>
+          </div>
+        </div>
+        <div class="horizon-row">
+          <div class="horizon-tag">1&ndash;2 yr <span class="dim">&middot; soon</span></div>
+          <div class="horizon-body">
+            <h3 data-glitch>Publish first peer-reviewed papers</h3>
+            <p>Push the eDNA / SVM-vs-BLAST work and the &Omicron;&Kappa;&Alpha;&Alpha; landings analysis through peer review. Targets: Molecular Ecology Resources and a fisheries-economics journal.</p>
+          </div>
+        </div>
+        <div class="horizon-row">
+          <div class="horizon-tag">2&ndash;4 yr <span class="dim">&middot; aim</span></div>
+          <div class="horizon-body">
+            <h3 data-glitch>Anthropic Fellows Program</h3>
+            <p>Apply with concrete contributions to interpretability or alignment &mdash; not as a fan, but with original work to point at. The plan is to deserve the seat.</p>
+          </div>
+        </div>
+        <div class="horizon-row">
+          <div class="horizon-tag">3&ndash;5 yr <span class="dim">&middot; horizon</span></div>
+          <div class="horizon-body">
+            <h3 data-glitch>PhD on the alignment path</h3>
+            <p>Only if it sharpens the research, not for the title. Either via a strong alignment-oriented programme, or directly inside an industry lab doing the work.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== THE POND ===================== -->
+  <section id="pond">
+    <div class="container">
+      <div class="eyebrow reveal">
+        <span class="num">§ 06</span>
+        <span>Field practice</span>
+        <span class="rule"></span>
+        <span>the pond &middot; a small distraction</span>
+      </div>
+
+      <h2 class="section-title reveal d1" data-glitch>A small distraction. <em>Cast a line.</em></h2>
+      <p class="lede reveal d1">A break from the rest of the page.</p>
+
+      <ol class="pond-steps reveal d1">
+        <li><span class="n">1.</span> Click the canvas (or the <em>Cast</em> button) to drop a line.</li>
+        <li><span class="n">2.</span> Wait. When the bobber jiggles &amp; the status flashes <em>BITE</em>, you&rsquo;ve got something on the hook.</li>
+        <li><span class="n">3.</span> Click again within about a second to reel it in. Too slow and it escapes.</li>
+      </ol>
+
+      <div class="pond-wrap reveal d2">
+        <div class="pond-canvas">
+          <canvas id="pond-canvas" width="720" height="360"></canvas>
+        </div>
+        <div class="pond-hud">
+          <div class="pond-status" id="pond-status">Click to cast</div>
+          <button class="pond-btn" id="pond-btn" type="button">Cast</button>
+          <div class="pond-tally" id="pond-tally"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CONTACT ===================== -->
+  <section id="contact">
+    <div class="container">
+      <div class="eyebrow reveal">
+        <span class="num">§ 07</span>
+        <span>Contact</span>
+        <span class="rule"></span>
+        <span>EOF</span>
+      </div>
+
+      <h2 class="contact-title reveal d1" data-glitch>Write about <em>research,</em> <em>building,</em> or <em>alignment.</em></h2>
+
+      <div class="contact-grid reveal d2">
+        <a class="contact-link" href="mailto:mrchachoudis@gmail.com">
+          <div>
+            <span class="label">email</span>
+            <span class="val" data-glitch>mrchachoudis@gmail.com</span>
+          </div>
+          <span class="arr">↗</span>
+        </a>
+        <a class="contact-link" href="https://github.com/mrchachoudis" target="_blank" rel="noopener">
+          <div>
+            <span class="label">github</span>
+            <span class="val" data-glitch>@mrchachoudis</span>
+          </div>
+          <span class="arr">↗</span>
+        </a>
+        <a class="contact-link" href="https://www.linkedin.com/in/marios-chachoudis-696538256/" target="_blank" rel="noopener">
+          <div>
+            <span class="label">linkedin</span>
+            <span class="val" data-glitch>in/marios-chachoudis</span>
+          </div>
+          <span class="arr">↗</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="foot">
+    <div class="lo">
+      <span class="ver">Marios Chachoudis</span>
+      <span>Volos, Greece &middot; 2026</span>
+      <span>Univ. of Thessaly &middot; Ichthyology</span>
+    </div>
+    <div>Built by hand &middot; <a href="https://github.com/mrchachoudis/mrchachoudis.github.io" target="_blank" rel="noopener" data-glitch>source &nearr;</a></div>
+  </footer>
+
+</div>
+
+<!-- ===================== REEL-UP (fishing rod back-to-top) ===================== -->
+<button class="rod-up" id="rod-up" aria-label="Reel back to top" type="button">
+  <span class="rod-line"></span>
+  <span class="rod-hook"></span>
+  <span class="rod-shaft"></span>
+  <span class="rod-reel"></span>
+  <span class="rod-grip"></span>
+  <span class="rod-label">Reel up</span>
+</button>
+
+<script>
+/* ========== REEL-UP — fishing-rod back-to-top ========== */
+(function rodUp(){
+  const rod = document.getElementById('rod-up');
+  if (!rod) return;
+  function check(){
+    const threshold = (window.innerHeight || 800) * 0.5;
+    rod.classList.toggle('live', window.scrollY > threshold);
+  }
+  window.addEventListener('scroll', check, { passive: true });
+  check();
+  rod.addEventListener('click', () => {
+    rod.classList.add('reeling');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => rod.classList.remove('reeling'), 1400);
+  });
+})();
+
+/* ========== THEME TOGGLE ========== */
+(function theme(){
+  const root = document.documentElement;
+  const KEY = 'marios-theme';
+  let pref = null;
+  try { pref = localStorage.getItem(KEY); } catch(_){}
+  if (pref === 'light' || pref === 'dark'){ root.setAttribute('data-theme', pref); }
+  const btn = document.getElementById('theme-toggle');
+  btn.addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch(_){}
+  });
+})();
+
+/* ========== NAV ACTIVE / SCROLLED ========== */
+(function nav(){
+  const topbar = document.getElementById('topbar');
+  const navCells = document.querySelectorAll('.nav-cell[data-nav]');
+  const map = { work: 'work', log: 'log', contact: 'contact' };
+  const sections = Object.values(map).map(id => document.getElementById(id));
+  function onScroll(){
+    topbar.classList.toggle('scrolled', window.scrollY > 8);
+    const y = window.scrollY + window.innerHeight * 0.35;
+    let active = null;
+    for (const s of sections){
+      if (!s) continue;
+      if (s.offsetTop <= y) active = s.id;
+    }
+    navCells.forEach(c => {
+      const target = map[c.getAttribute('data-nav')];
+      c.classList.toggle('active', target === active);
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+/* ========== GLITCH TEXT — letter-by-letter scramble on hover ==========
+   Each [data-glitch] element is permanently split into per-character spans
+   on init. Each char has a transparent ghost (holds layout) and an
+   absolutely-positioned show (currently visible glyph). On hover, each
+   show cycles random glyphs and settles to its target. The DOM never
+   swaps back — so start and end positions are pixel-identical.
+   ===================================================================== */
+(function(){
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*+=?/<>{}[]\u2591\u2592\u2593\u2588\u259A\u259E\u259F\u2599";
+  const DITHER = "\u2591\u2592\u2593\u2588\u259A\u259E\u259F\u2599";
+
+  function pickGlyph(){
+    if (Math.random() < 0.18) return DITHER[Math.floor(Math.random()*DITHER.length)];
+    return POOL[Math.floor(Math.random()*POOL.length)];
+  }
+
+  function init(el){
+    if (el.__gx_init) return;
+    el.__gx_init = true;
+
+    const items = [];
+    const newChildren = [];
+    Array.from(el.childNodes).forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE){
+        const text = node.textContent;
+        for (let i = 0; i < text.length; i++){
+          const ch = text[i];
+          const wrap = document.createElement('span');
+          wrap.className = 'gx-char';
+          wrap.dataset.target = ch;
+
+          const ghost = document.createElement('span');
+          ghost.className = 'gx-ghost';
+          ghost.textContent = ch;
+
+          const show = document.createElement('span');
+          show.className = 'gx-show';
+          show.setAttribute('aria-hidden', 'true');
+          show.textContent = ch;
+
+          wrap.appendChild(ghost);
+          wrap.appendChild(show);
+          newChildren.push(wrap);
+          items.push({ wrap, show, target: ch });
+        }
+      } else {
+        newChildren.push(node);
+      }
+    });
+
+    el.textContent = '';
+    newChildren.forEach(n => el.appendChild(n));
+
+    let running = false;
+    let timers = [];
+    function clearTimers(){ timers.forEach(t => clearTimeout(t)); timers = []; }
+
+    function run(){
+      if (running || reduced) return;
+      running = true;
+      clearTimers();
+
+      const charDuration = 280, stagger = 28, tick = 50;
+      items.forEach((item, i) => {
+        const { wrap, show, target } = item;
+        if (target === ' ' || target === '\u00A0') return;
+        const startDelay = i * stagger;
+        wrap.classList.add('glitching');
+        const startAt = performance.now() + startDelay;
+        const endAt = startAt + charDuration;
+        const update = () => {
+          const now = performance.now();
+          if (now >= endAt){
+            show.textContent = target;
+            wrap.classList.remove('glitching');
+            return;
+          }
+          if (now >= startAt) show.textContent = pickGlyph();
+          timers.push(setTimeout(update, tick));
+        };
+        timers.push(setTimeout(update, startDelay));
+      });
+
+      const totalDur = items.length * stagger + charDuration + 80;
+      timers.push(setTimeout(() => { running = false; }, totalDur));
+    }
+
+    el.addEventListener('mouseenter', run);
+    el.addEventListener('focus', run);
+  }
+
+  window.__initGlitch = init;
+  document.querySelectorAll('[data-glitch]').forEach(init);
+})();
+
+/* ========== COPY BUTTONS ========== */
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const cmd = btn.getAttribute('data-cmd');
+    try {
+      await navigator.clipboard.writeText(cmd);
+      btn.classList.add('done');
+      const span = btn.querySelector('span') || btn;
+      const orig = span.textContent;
+      span.textContent = 'Copied';
+      setTimeout(() => { span.textContent = orig; btn.classList.remove('done'); }, 1400);
+    } catch(_){}
+  });
+});
+
+/* ========== REVEAL ON SCROLL ========== */
+(function reveals(){
+  const all = Array.from(document.querySelectorAll('.reveal'));
+  function check(){
+    const vh = window.innerHeight || 800;
+    all.forEach(el => {
+      if (el.classList.contains('in')) return;
+      const r = el.getBoundingClientRect();
+      if (r.top < vh * 0.92 && r.bottom > 0) el.classList.add('in');
+    });
+  }
+  check();
+  if ('IntersectionObserver' in window){
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    all.forEach(el => { if (!el.classList.contains('in')) io.observe(el); });
+  }
+  let raf = 0;
+  window.addEventListener('scroll', () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = 0; check(); });
+  }, { passive: true });
+  setTimeout(() => all.forEach(el => el.classList.add('in')), 1600);
+})();
+
+/* ========== ANIMATED TERMINAL ========== */
+(function terminal(){
+  const root = document.getElementById('terminal');
+  if (!root) return;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const SCRIPT = [
+    { kind: 'prompt', text: 'Train an SVM classifier on Mediterranean fish COI sequences.', typeMs: 28 },
+    { kind: 'tool', name: 'read_fasta',     arg: 'data/coi_med.fasta',         runMs: 320,  label: '0.2s' },
+    { kind: 'tool', name: 'kmer_featurize', arg: 'k=4',                        runMs: 950,  label: '1.8s' },
+    { kind: 'tool', name: 'train',          arg: 'sklearn.svm.LinearSVC',      runMs: 1100, label: '4.3s' },
+    { kind: 'tool', name: 'evaluate',       arg: 'baseline=BLAST',             runMs: 1300, label: '6.1s' },
+    { kind: 'tool', name: 'shap_explain',   arg: 'feature_attributions',       runMs: 850,  label: '2.4s' },
+    { kind: 'tool', name: 'write_file',     arg: 'writeups/svm_vs_blast.md',   runMs: 260,  label: '0.1s' },
+    { kind: 'done', text: 'Done. 99.54% accuracy at ~97x BLAST inference speed.' },
+  ];
+
+  function el(tag, cls){
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function typeInto(target, text, perChar){
+    if (reduced){ target.textContent = text; return; }
+    for (let i = 0; i < text.length; i++){
+      target.textContent = text.slice(0, i + 1);
+      await sleep(perChar);
+    }
+  }
+
+  function makePromptLine(){
+    const row = el('div', 't-line prompt');
+    row.innerHTML = '<span class="gutter">&gt;</span><span class="body"></span><span class="caret"></span>';
+    return row;
+  }
+  function makeToolLine(name, arg){
+    const row = el('div', 't-line tool');
+    row.innerHTML =
+      '<span class="gutter">·</span>' +
+      '<span class="body"><span class="name">' + name + '</span> <span class="arg">' + arg + '</span></span>' +
+      '<span class="time"></span>';
+    return row;
+  }
+  function makeDoneLine(text){
+    const row = el('div', 't-line done');
+    row.innerHTML = '<span class="gutter">&#10003;</span><span class="body">' + text + '</span><span class="caret"></span>';
+    return row;
+  }
+
+  async function runOnce(){
+    root.innerHTML = '';
+    let promptLine = null;
+    for (const step of SCRIPT){
+      if (step.kind === 'prompt'){
+        promptLine = makePromptLine();
+        root.appendChild(promptLine);
+        promptLine.classList.add('in');
+        await typeInto(promptLine.querySelector('.body'), step.text, step.typeMs);
+        await sleep(600);
+        const c = promptLine.querySelector('.caret');
+        if (c) c.remove();
+        await sleep(200);
+      } else if (step.kind === 'tool'){
+        const row = makeToolLine(step.name, step.arg);
+        root.appendChild(row);
+        requestAnimationFrame(() => row.classList.add('in'));
+        await sleep(step.runMs);
+        const t = row.querySelector('.time');
+        t.textContent = step.label;
+        t.classList.add('in');
+        await sleep(180);
+      } else if (step.kind === 'done'){
+        await sleep(300);
+        const row = makeDoneLine(step.text);
+        root.appendChild(row);
+        requestAnimationFrame(() => row.classList.add('in'));
+        await sleep(5000);
+      }
+    }
+  }
+
+  async function loop(){
+    while (true){
+      await runOnce();
+      root.style.transition = 'opacity .6s ease';
+      root.style.opacity = '0.25';
+      await sleep(700);
+      root.style.opacity = '1';
+      await sleep(200);
+    }
+  }
+
+  if ('IntersectionObserver' in window){
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting){ loop(); io.disconnect(); }
+      });
+    }, { threshold: 0.15 });
+    io.observe(root);
+  } else {
+    loop();
+  }
+})();
+
+/* ========== PROJECTS DATA + RENDER ========== */
+const PROJECTS = [
+  {
+    name: "eDNA Species ID — SVM matches BLAST at ~100x speed",
+    status: "live", statusLabel: "shipped",
+    desc: "Linear SVM matches BLAST's 99.54% accuracy at ~97x faster inference on Mediterranean fish COI sequences. 26 species, 3,288 sequences, 4-mer features.",
+    stack: ["Python", "scikit-learn", "BLAST+", "SHAP"],
+    links: [
+      { label: "code", url: "https://github.com/mrchachoudis/edna-coi-classifier" },
+      { label: "writeup", url: "https://github.com/mrchachoudis/edna-coi-classifier/blob/main/writeups/edna_svm_vs_blast.md" },
+    ],
+  },
+  {
+    name: "Probing the SVM — what a null result revealed",
+    status: "live", statusLabel: "shipped",
+    desc: "Three attribution methods (raw weights, permutation, SHAP) on the trained linear SVM. The model doesn't recover known COI diagnostic positions (p=0.50) — the explanation is structural: bag-of-k-mers discards positional information by construction. A clean negative result with a mechanistic reason.",
+    stack: ["Python", "SHAP", "scikit-learn"],
+    links: [
+      { label: "writeup", url: "https://github.com/mrchachoudis/edna-coi-classifier/blob/main/writeups/svm_interpretability_probe.md" },
+      { label: "code", url: "https://github.com/mrchachoudis/edna-coi-classifier" },
+    ],
+  },
+  {
+    name: "ΟΚΑΑ Fisheries Analysis · 52,315 records",
+    status: "thesis", statusLabel: "thesis · '26",
+    desc: "Undergraduate thesis analysing Greek fish-landing records (2013–2025). Panel regression with oil-price scenario modelling to test fuel-cost elasticity of catch across 10 commercial species. Mann-Kendall, STL, K-means, Shannon, SST correlation.",
+    stack: ["R", "Python", "panel-data", "econometrics"],
+  },
+  {
+    name: "Local agentic stack · Qwen3-14B + tools",
+    status: "research", statusLabel: "in-flight",
+    desc: "Real-time agentic setup running locally on RTX 5060 Ti via Ollama. Web access via SearXNG, exploring Open WebUI on Proxmox and a custom Python agent loop. Persistent memory + auto-generated skills are the next bet.",
+    stack: ["Ollama", "Qwen3", "Proxmox", "Python"],
+  },
+  {
+    name: "Aquaculture Site Planner · Aegean Sea",
+    status: "research", statusLabel: "in-flight",
+    desc: "Planning tool for siting offshore aquaculture in the Aegean — targeting gilthead sea bream and European sea bass. Bathymetry, current, SST, regulatory layers, scenario-based site scoring.",
+    stack: ["Python", "GeoPandas", "Streamlit"],
+  },
+  {
+    name: "Last Redoubt · self-hosted encrypted chat",
+    status: "research", statusLabel: "alpha",
+    desc: "Post-quantum-encrypted chat platform running on my Proxmox homelab. Privacy-first, no third-party dependence, designed for trust-minimised group communication.",
+    stack: ["Proxmox", "Kyber", "Rust", "WireGuard"],
+  },
+  {
+    name: "Data Cleaner · first real shipped tool",
+    status: "live", statusLabel: "shipped",
+    desc: "Streamlit app that takes the painful first hour of any data analysis off your hands. Upload a CSV, get missing-value handling, fuzzy-deduplication, format standardisation, outlier detection, type conversion, reshaping, noisy-text cleanup. Every step is logged for reproducibility.",
+    stack: ["Python", "Streamlit", "Pandas", "FuzzyWuzzy"],
+    links: [{ label: "code", url: "https://github.com/mrchachoudis/Data-Cleaning-App" }],
+  },
+];
+
+(function renderProjects(){
+  const root = document.getElementById('projects-list');
+  if (!root) return;
+  PROJECTS.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'project';
+    const stackHtml = p.stack.map(s => '<span>' + s + '</span>').join('');
+    const linksHtml = (p.links || []).map(l =>
+      '<a href="' + l.url + '" target="_blank" rel="noopener" data-glitch>' + l.label + ' <span class="arr">&rarr;</span></a>'
+    ).join('');
+    el.innerHTML =
+      '<div class="project-status"><span class="pill ' + p.status + '">' + p.statusLabel + '</span></div>' +
+      '<div class="project-body">' +
+        '<h3 data-glitch>' + p.name + '</h3>' +
+        '<p>' + p.desc + '</p>' +
+        '<div class="project-stack">' + stackHtml + '</div>' +
+      '</div>' +
+      '<div class="project-links">' + linksHtml + '</div>';
+    root.appendChild(el);
+  });
+  // re-init glitch on newly rendered nodes
+  if (window.__initGlitch){
+    root.querySelectorAll('[data-glitch]').forEach(window.__initGlitch);
+  }
+})();
+
+/* ========== CERTS DATA + RENDER ========== */
+const CERTS = [
+  { name: "Google Advanced Data Analytics",        issuer: "Google · Coursera",  year: "'25", url: "https://www.coursera.org/account/accomplishments/professional-cert/N6ZRZEF9WO8V" },
+  { name: "Machine Learning with Python",          issuer: "freeCodeCamp",       year: "'25", url: "https://www.freecodecamp.org/certification/mrchachoudis/machine-learning-with-python-v7" },
+  { name: "Google Digital Marketing & E-commerce", issuer: "Google · Coursera",  year: "'26", url: "https://www.coursera.org/account/accomplishments/professional-cert/POJJSIB75U9E" },
+  { name: "BI Essentials for Finance Analysts",    issuer: "SkillUp · Coursera", year: "'25", url: "https://www.coursera.org/account/accomplishments/specialization/NDC5BB8ZIC27" },
+  { name: "Generative AI for Data Analysts",       issuer: "IBM · Coursera",     year: "'25", url: "https://www.coursera.org/account/accomplishments/specialization/71KTQL7OJEI3" },
+  { name: "Google Data Analytics",                 issuer: "Google · Coursera",  year: "'25", url: "https://www.coursera.org/account/accomplishments/professional-cert/D612QWTGC1ZJ" },
+  { name: "Scientific Computing with Python",      issuer: "freeCodeCamp",       year: "'25", url: "https://www.freecodecamp.org/certification/mrchachoudis/scientific-computing-with-python-v7" },
+  { name: "Adobe Content Creator Professional",    issuer: "Adobe · Coursera",   year: "'25", url: "https://www.coursera.org/account/accomplishments/professional-cert/LOYWDVBBKDNF" },
+  { name: "AI in Education & eTwinning",           issuer: "eTwinning",          year: "'25", url: "https://mooc.etwinning.gr/certificates/7c0330704c3840a0bbc6e448f072ebbb" },
+  { name: "European eTwinning · ITE MOOC",         issuer: "eTwinning",          year: "'25", url: "https://mooc.etwinning.gr/certificates/cad3f808683c48868360e15cdf4a5316" },
+];
+
+(function renderCerts(){
+  const root = document.getElementById('verified-list');
+  if (!root) return;
+  CERTS.forEach(c => {
+    const a = document.createElement('a');
+    a.className = 'cert-row';
+    a.href = c.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML =
+      '<span class="name" data-glitch>' + c.name + '</span>' +
+      '<span class="meta">' + c.issuer + '<span class="yr">' + c.year + '</span></span>';
+    root.appendChild(a);
+  });
+  if (window.__initGlitch){
+    root.querySelectorAll('[data-glitch]').forEach(window.__initGlitch);
+  }
+})();
+
+/* ========== RE-INIT GLITCH ON DYNAMIC NODES ========== */
+(function(){
+  if (window.__initGlitch){
+    document.querySelectorAll('[data-glitch]').forEach(window.__initGlitch);
+  }
+})();
+</script>
+
+</body>
+</html>
