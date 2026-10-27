@@ -1560,7 +1560,7 @@ footer.foot .lo{ display: flex; gap: 18px; flex-wrap: wrap; }
           <dt>Place</dt><dd>Volos, Greece. Aegean weather, university campus, homelab in the corner of the room.</dd>
           <dt>Studying</dt><dd>Fourth-year ichthyology &middot; University of Thessaly. Finishing a thesis on Greek fisheries landings.</dd>
           <dt>Building</dt><dd>Lumen, a browser simulator of Aegean fish populations, and Nereus, a multi-agent fisheries research pipeline. On top of the eDNA classifier and a local agentic stack on an RTX 5060 Ti. Plus one unnamed project, quietly.</dd>
-          <dt>Presenting</dt><dd>Three papers at HydroMediT &mdash; oral session, fisheries field. All three out of the &Omicron;&Kappa;&Alpha;&Alpha; landings dataset.</dd>
+          <dt>Presenting</dt><dd>Three papers at HydroMediT this November &mdash; oral session, fisheries field. All three out of the &Omicron;&Kappa;&Alpha;&Alpha; landings dataset.</dd>
           <dt>Reading</dt><dd>Anthropic interpretability papers. Hubinger on deceptive alignment. Whatever Mediterranean fisheries journal arrives that week.</dd>
           <dt>Looking for</dt><dd>Conversations about alignment, interpretability, or fisheries-science crossover. Not jobs &mdash; not yet.</dd>
         </dl>
@@ -1673,12 +1673,12 @@ footer.foot .lo{ display: flex; gap: 18px; flex-wrap: wrap; }
         <span class="num">§ 04</span>
         <span>Conference</span>
         <span class="rule"></span>
-        <span>oral session &middot; presenting author</span>
+        <span>november 2026 &middot; oral session</span>
       </div>
 
       <h2 class="section-title reveal d1" data-glitch>Three papers, <em>one oral session.</em></h2>
       <p class="lede reveal d1">
-        Three talks at HydroMediT &mdash; the International Congress on Applied Ichthyology, Oceanography &amp; Aquatic Environment &mdash; in the fisheries field, presenting all of them myself. They come out of the same &Omicron;&Kappa;&Alpha;&Alpha; landings dataset as my thesis. The through-line: what the price of fuel does to a fishery, measured three different ways.
+        Three talks this November at HydroMediT &mdash; the International Congress on Applied Ichthyology, Oceanography &amp; Aquatic Environment &mdash; in the fisheries field, presenting all of them myself. They come out of the same &Omicron;&Kappa;&Alpha;&Alpha; landings dataset as my thesis. The through-line: what the price of fuel does to a fishery, measured three different ways.
       </p>
 
       <div class="conf-card reveal d2" id="conf-card"></div>
@@ -2283,6 +2283,7 @@ const CERTS = [
 const CONFERENCE = {
   name:    "HydroMediT",
   edition: "2026",
+  when:    "November 2026",
   session: "Oral &middot; 2nd Field, Fisheries",
   role:    "Presenting author &times; 3",
 };
@@ -2313,9 +2314,9 @@ const PAPERS = [
   if (card){
     const fields = [
       ["Congress", "<em>" + CONFERENCE.name + "</em> " + CONFERENCE.edition],
+      ["When",     CONFERENCE.when],
       ["Session",  CONFERENCE.session],
       ["Role",     CONFERENCE.role],
-      ["Papers",   String(PAPERS.length)],
     ];
     card.innerHTML = fields.map(f =>
       '<div class="cf"><span class="k">' + f[0] + '</span><span class="v">' + f[1] + '</span></div>'
